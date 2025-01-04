@@ -3,40 +3,56 @@ import { Text, View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const CalendarScreen = () => {
-  const [today, setToday] = useState<Date>(new Date());
-  const [selectDate, setSelectDate] = useState<Date | null>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectDate, setSelectDate] = useState<Date>(new Date());
 
   const getCalendarDates = () => {
-    const year = today.getFullYear();
-    const month = today.getMonth();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
     const endDay = new Date(year, month + 1, 0).getDate();
     const lastMonthEndDays = new Date(year, month, 0).getDate();
 
     // 날짜 배열 생성
     const dates = [
-      ...Array.from({ length: firstDay }, (_, i) => ({ day: lastMonthEndDays - firstDay + i + 1, isCurrentMonth: false })),
-      ...Array.from({ length: endDay }, (_, i) => ({ day: i + 1, isCurrentMonth: true })),
-      ...Array.from({ length: 7 - ((endDay + firstDay) % 7) }, (_, i) => ({ day: i + 1, isCurrentMonth: false })),
+      ...Array.from({ length: firstDay }, (_, i) => ({ day: new Date(year, month - 1, lastMonthEndDays - firstDay + i + 1), isCurrentMonth: false })),
+      ...Array.from({ length: endDay }, (_, i) => ({ day: new Date(year, month, i + 1), isCurrentMonth: true })),
+      ...Array.from({ length: 7 - ((endDay + firstDay) % 7) }, (_, i) => ({ day: new Date(year, month + 1, i + 1), isCurrentMonth: false })),
     ];
 
     // 배열을 7일씩 묶어서 반환
-    return dates.reduce<{ day: number; isCurrentMonth: boolean }[][]>((weeks, date, i) => {
+    return dates.reduce<{ day: Date; isCurrentMonth: boolean }[][]>((weeks, date, i) => {
       if (i % 7 === 0) weeks.push([]);
       weeks[weeks.length - 1].push(date);
       return weeks;
     }, []);
   };
 
+  const onClickPrev = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const onClickNext = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + 1);
+    setCurrentDate(newDate);
+  };
+
+  const onSelectDate = (date: Date) => {
+    setSelectDate(date);
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Icon name={'arrow-back-ios'} style={styles.arrow} />
+        <Icon name={'arrow-back-ios'} style={styles.arrow} onPress={onClickPrev} />
         <Text style={styles.month}>
-          {today.toLocaleString('en-US', { month: 'long' })} {today.getFullYear()}
+          {currentDate.toLocaleString('en-US', { month: 'long' })} {currentDate.getFullYear()}
         </Text>
-        <Icon name={'arrow-forward-ios'} style={styles.arrow} />
+        <Icon name={'arrow-forward-ios'} style={styles.arrow} onPress={onClickNext} />
       </View>
 
       {/* Week */}
@@ -53,10 +69,21 @@ const CalendarScreen = () => {
         {getCalendarDates().map((week, weekIndex) => (
           <View key={weekIndex} style={styles.week}>
             {week.map((date, dayIndex) => {
-              const { day, isCurrentMonth } = date;
+              const { day: calendarDate, isCurrentMonth } = date;
+              const isSelected =
+                selectDate &&
+                selectDate.getDate() === calendarDate.getDate() &&
+                selectDate.getMonth() === calendarDate.getMonth() &&
+                selectDate.getFullYear() === calendarDate.getFullYear();
+
               return (
                 <View key={dayIndex} style={styles.dayContainer}>
-                  <Text style={[styles.day, !isCurrentMonth && styles.dayDisabled, selectDate?.getDate() === day && styles.daySelected]}>{day}</Text>
+                  <Text
+                    style={[styles.day, !isCurrentMonth && styles.dayDisabled, isSelected && styles.daySelected]}
+                    onPress={() => isCurrentMonth && onSelectDate(calendarDate)}
+                  >
+                    {calendarDate.getDate()}
+                  </Text>
                 </View>
               );
             })}
@@ -98,7 +125,17 @@ const styles = StyleSheet.create({
   dayDisabled: {
     color: '#bbb',
   },
-  daySelected: { borderWidth: 1, borderColor: '#329eff', borderRadius: '50%', fontWeight: 'bold', color: '#000', paddingHorizontal: 10, paddingVertical: 5 },
+  daySelected: {
+    borderWidth: 1,
+    borderColor: '#329eff',
+    borderRadius: '50%',
+    fontWeight: 'bold',
+    color: '#000',
+    width: 30,
+    height: 30,
+    textAlign: 'center',
+    lineHeight: 30,
+  },
 });
 
 export default CalendarScreen;
