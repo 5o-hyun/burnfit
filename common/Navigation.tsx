@@ -13,7 +13,7 @@ const Navigation = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        initialRouteName="home"
+        initialRouteName="Calendar"
         screenOptions={{
           tabBarActiveTintColor: '#000',
           headerShown: false,

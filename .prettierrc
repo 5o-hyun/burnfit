@@ -3,7 +3,7 @@
   "semi": true,
   "useTabs": false,
   "tabWidth": 2,
-  "printWidth": 80,
+  "printWidth": 160,
   "sortImports": true,
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
