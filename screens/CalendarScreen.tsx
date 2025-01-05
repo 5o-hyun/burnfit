@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, View, StyleSheet, PanResponder, GestureResponderEvent } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const CalendarScreen = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectDate, setSelectDate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<'monthly' | 'weekly'>('monthly');
 
   const getCalendarDates = () => {
     const year = currentDate.getFullYear();
@@ -28,6 +29,13 @@ const CalendarScreen = () => {
     }, []);
   };
 
+  const getWeekDates = () => {
+    const startOfWeek = currentDate;
+    const startDay = startOfWeek.getDate() - startOfWeek.getDay();
+    const weekDates = Array.from({ length: 7 }, (_, i) => new Date(startOfWeek.setDate(startDay + i)));
+    return weekDates;
+  };
+
   const onClickPrev = () => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() - 1);
@@ -44,8 +52,28 @@ const CalendarScreen = () => {
     setSelectDate(date);
   };
 
+  const onSwipeUp = () => {
+    setViewMode('monthly');
+  };
+  const onSwipeDown = () => {
+    setViewMode('weekly');
+  };
+  const onSwipeLeft = () => setCurrentDate(new Date(currentDate.setDate(currentDate.getDate() - 7)));
+  const onSwipeRight = () => setCurrentDate(new Date(currentDate.setDate(currentDate.getDate() + 7)));
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderMove: (e: GestureResponderEvent, gestureState: { dy: number; dx: number }) => {
+      if (gestureState.dy > 50) onSwipeUp();
+      if (gestureState.dy < -50) onSwipeDown();
+      if (gestureState.dx > 50) onSwipeLeft();
+      if (gestureState.dx < -50) onSwipeRight();
+    },
+  });
+
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       {/* Header */}
       <View style={styles.header}>
         <Icon name={'arrow-back-ios'} style={styles.arrow} onPress={onClickPrev} />
@@ -65,37 +93,53 @@ const CalendarScreen = () => {
       </View>
 
       {/* Day */}
-      <View>
-        {getCalendarDates().map((week, weekIndex) => (
-          <View key={weekIndex} style={styles.week}>
-            {week.map((date, dayIndex) => {
-              const { day: calendarDate, isCurrentMonth } = date;
-              const isSelected =
-                selectDate &&
-                selectDate.getDate() === calendarDate.getDate() &&
-                selectDate.getMonth() === calendarDate.getMonth() &&
-                selectDate.getFullYear() === calendarDate.getFullYear();
+      {viewMode === 'monthly' && (
+        <View>
+          {getCalendarDates().map((week, weekIndex) => (
+            <View key={weekIndex} style={styles.week}>
+              {week.map((date, dayIndex) => {
+                const { day: calendarDate, isCurrentMonth } = date;
+                const isSelected =
+                  selectDate &&
+                  selectDate.getDate() === calendarDate.getDate() &&
+                  selectDate.getMonth() === calendarDate.getMonth() &&
+                  selectDate.getFullYear() === calendarDate.getFullYear();
 
-              return (
-                <View key={dayIndex} style={styles.dayContainer}>
-                  <Text
-                    style={[styles.day, !isCurrentMonth && styles.dayDisabled, isSelected && styles.daySelected]}
-                    onPress={() => isCurrentMonth && onSelectDate(calendarDate)}
-                  >
-                    {calendarDate.getDate()}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        ))}
-      </View>
+                return (
+                  <View key={dayIndex} style={styles.dayContainer}>
+                    <Text
+                      style={[styles.day, !isCurrentMonth && styles.dayDisabled, isSelected && styles.daySelected]}
+                      onPress={() => isCurrentMonth && onSelectDate(calendarDate)}
+                    >
+                      {calendarDate.getDate()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      )}
+      {viewMode === 'weekly' && (
+        <View style={styles.weekContainer}>
+          {getWeekDates().map((date, index) => {
+            const isSelected = selectDate.getDate() === date.getDate() && selectDate.getMonth() === date.getMonth();
+            return (
+              <View key={index} style={styles.dayContainer}>
+                <Text style={[styles.day, isSelected && styles.daySelected]} onPress={() => onSelectDate(date)}>
+                  {date.getDate()}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, marginTop: 50 },
+  container: { padding: 20 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
