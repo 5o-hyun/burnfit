@@ -13,7 +13,7 @@ const Navigation = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        initialRouteName="Calendar"
+        initialRouteName="home"
         screenOptions={{
           tabBarActiveTintColor: '#000',
           headerShown: false,
@@ -24,9 +24,7 @@ const Navigation = () => {
           component={HomeScreen}
           options={{
             title: 'HOME',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name={'home'} color={color} size={size} />
-            ),
+            tabBarIcon: ({ color, size }) => <Icon name={'home'} color={color} size={size} />,
           }}
         />
         <Tab.Screen
@@ -34,9 +32,7 @@ const Navigation = () => {
           component={CalendarScreen}
           options={{
             title: 'CALENDAR',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name={'calendar-month'} color={color} size={size} />
-            ),
+            tabBarIcon: ({ color, size }) => <Icon name={'calendar-month'} color={color} size={size} />,
           }}
         />
         <Tab.Screen
@@ -44,9 +40,7 @@ const Navigation = () => {
           component={LibraryScreen}
           options={{
             title: 'LIBRARY',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name={'grade'} color={color} size={size} />
-            ),
+            tabBarIcon: ({ color, size }) => <Icon name={'grade'} color={color} size={size} />,
           }}
         />
         <Tab.Screen
@@ -54,9 +48,7 @@ const Navigation = () => {
           component={MypageScreen}
           options={{
             title: 'MYPAGE',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name={'person'} color={color} size={size} />
-            ),
+            tabBarIcon: ({ color, size }) => <Icon name={'person'} color={color} size={size} />,
           }}
         />
       </Tab.Navigator>
